@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSend;
     private EditText inputMsg;
     private ListView listViewMessages;
-    private RecyclerView recyclerView;
+    private ListView listView;
 
     Context context;
     RequestQueue queue;
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnSend = (Button) findViewById(R.id.btnSend);
         inputMsg = (EditText) findViewById(R.id.inputMsg);
-        recyclerView = (RecyclerView) findViewById(R.id.recycle_view);
+        listView = (ListView) findViewById(R.id.list_view);
 
         context = getApplicationContext();
         queue = Volley.newRequestQueue(context);
@@ -83,10 +83,7 @@ public class MainActivity extends AppCompatActivity {
         messageList = new ArrayList<>();
 
         mAdapter = new MessagesListAdapter(this, messageList);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(mAdapter);
+        listView.setAdapter(mAdapter);
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,9 +95,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendMessage()
     {
-        final String msg = inputMsg.getText().toString().trim();
+        String msg = inputMsg.getText().toString().trim();
 
-        //message== null ||
         if( msg.length()==0) {
             Toast.makeText(getApplicationContext(), "Enter a message", Toast.LENGTH_SHORT).show();
             return;
@@ -120,28 +116,20 @@ public class MainActivity extends AppCompatActivity {
         message.setMessage(msg);
         message.setEmotion(null);
         message.setSelf(true);
-
         messageList.add(message);
         mAdapter.notifyDataSetChanged();
-        if (mAdapter.getItemCount() > 1) {
-            // scrolling to bottom of the recycler view
-            recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
-        }
+
+        msg = msg.replace(" ","+");
         sendMessageToServer(msg);
     }
-
 
     private void sendMessageToServer(final String msg)
     {
         String url =Config.URL+"?apiKey="+Config.apiKey+"&message="+msg+"&chatBotID="+Config.chatBotID+"&externalID="+Config.externalID;
-        Log.d(TAG," "+ url);
         JsonObjectRequest jsonObjectRequest= new JsonObjectRequest(Request.Method.GET, url,null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        //  progressDialog.hide();
-                        //Toast.makeText(context,"result ok",Toast.LENGTH_SHORT).show();
-                        Log.d("response"," "+ response);
                         if (response != null && response.length() > 0) {
                             try {
                                 if(response.getInt("success")==1)
@@ -154,33 +142,25 @@ public class MainActivity extends AppCompatActivity {
                                     message.setEmotion(m.optString("emotions",null));
                                     message.setSelf(false);
 
-                                    messageList.add(message);
-                                    mAdapter.notifyDataSetChanged();
-
-                                    if (mAdapter.getItemCount() > 1) {
-                                        // scrolling to bottom of the recycler view
-                                        recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
-                                    }
+                                    appendMessage(message);
                                 }
                                 else
                                 {
                                     String error=response.getString("errorMessage");
-                                    //show toast
+                                    Toast.makeText(getApplicationContext(), "Error: "+error, Toast.LENGTH_SHORT).show();
                                 }
                             } catch (Exception e) {
-                                Log.e(TAG, "json parsing error: " + e.getMessage());
                                 Toast.makeText(getApplicationContext(), "json parse error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             // errors
+                            Toast.makeText(getApplicationContext(), "Retry Later ", Toast.LENGTH_SHORT).show();
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        //progressDialog.hide();
-                        //findViewById(R.id.progress_container).setVisibility(View.GONE);
                         NetworkResponse networkResponse = error.networkResponse;
                         Log.e(TAG, "Volley error: " + error.getMessage() + ", code: " + networkResponse);
                         Toast.makeText(getApplicationContext(), "Volley error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -213,19 +193,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("check", "" + error.getClass().toString());*/
                     }
                 }
-        ) {
-           /* @Override
-            public Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("apiKey", "6nt5d1nJHkqbkphe");
-                params.put("message", "hi");
-                params.put("chatBotID","63906");
-                params.put("extrnalID","chirag1");
-                return params;
-            //apiKey=6nt5d1nJHkqbkphe&message=Hi&chatBotID
-//=63906&externalID=chirag1;
-            }*/
-        };
+        );
 
         // disabling retry policy so that it won't make
         // multiple http calls
@@ -239,6 +207,56 @@ public class MainActivity extends AppCompatActivity {
         queue.add(jsonObjectRequest);
     }
 
+    public class MessagesListAdapter extends BaseAdapter {
+
+        private Context context;
+        private List<Message> messagesItems;
+
+        public MessagesListAdapter(Context context, List<Message> navDrawerItems) {
+            this.context = context;
+            this.messagesItems = navDrawerItems;
+        }
+
+        @Override
+        public int getCount() {
+            return messagesItems.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return messagesItems.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            Message m = messagesItems.get(position);
+
+            LayoutInflater mInflater = (LayoutInflater) context
+                    .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+
+            if (messagesItems.get(position).isSelf()) {
+                convertView = mInflater.inflate(R.layout.list_item_message_right,
+                        null);
+            } else {
+                convertView = mInflater.inflate(R.layout.list_item_message_left,
+                        null);
+            }
+
+            TextView lblFrom = (TextView) convertView.findViewById(R.id.lblMsgFrom);
+            TextView txtMsg = (TextView) convertView.findViewById(R.id.txtMsg);
+
+            txtMsg.setText(m.getMessage());
+            lblFrom.setText(m.getChatBotName());
+
+            return convertView;
+        }
+    }
 
     private void appendMessage(final Message m) {
         runOnUiThread(new Runnable() {
@@ -246,89 +264,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 messageList.add(m);
-
                 mAdapter.notifyDataSetChanged();
-
                 // Playing device's notification
                 playBeep();
             }
         });
     }
-
-    public class MessagesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-        int SELF =100;
-        private Context mContext;
-        private ArrayList<Message> messageArrayList;
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            TextView message, name;
-
-            public ViewHolder(View view) {
-                super(view);
-                message = (TextView) itemView.findViewById(R.id.txtMsg);
-                name = (TextView) itemView.findViewById(R.id.lblMsgFrom);
-            }
-        }
-
-        public MessagesListAdapter(Context mContext, ArrayList<Message> messageArrayList) {
-            this.mContext = mContext;
-            this.messageArrayList = messageArrayList;
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView;
-
-            // view type is to identify where to render the chat message
-            // left or right
-            if (viewType == SELF) {
-                // self message
-                itemView = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.list_item_message_right, parent, false);
-            } else {
-                // others message
-                itemView = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.list_item_message_left, parent, false);
-            }
-            return new ViewHolder(itemView);
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            Message message = messageArrayList.get(position);
-            if (message.isSelf()) {
-                return SELF;
-            }
-            return position;
-        }
-
-        @Override
-        public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-            Message message = messageArrayList.get(position);
-            ((ViewHolder) holder).message.setText(message.getMessage());
-            ((ViewHolder) holder).name.setText(message.getChatBotName());
-
-        }
-
-        @Override
-        public int getItemCount() {
-            return messageArrayList.size();
-        }
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     private boolean networkIsAvailable(final Context context) {

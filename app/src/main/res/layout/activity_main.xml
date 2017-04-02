@@ -1,24 +1,12 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/tile_bg"
     android:fitsSystemWindows="true"
     android:orientation="vertical" >
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycle_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="20dp"
-        android:transcriptMode="alwaysScroll"
-        android:scrollbars="vertical"
-        android:background="@null"
-        android:divider="@null"
-        android:stackFromBottom="true"
-        />
-<!--
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycle_view"
+    <ListView
+        android:id="@+id/list_view"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -26,8 +14,7 @@
         android:divider="@null"
         android:transcriptMode="alwaysScroll"
         android:stackFromBottom="true">
-    </android.support.v7.widget.RecyclerView>-->
-
+    </ListView>
 
     <LinearLayout
         android:id="@+id/llMsgCompose"
@@ -58,4 +45,4 @@
             android:text="@string/btn_send" />
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>
