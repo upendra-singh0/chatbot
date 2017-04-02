@@ -52,6 +52,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
+
 import static android.R.id.message;
 
 public class MainActivity extends AppCompatActivity {
@@ -59,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSend;
     private EditText inputMsg;
     private ListView listViewMessages;
-    private ListView listView;
 
+    Realm realm;
     Context context;
     RequestQueue queue;
     LayoutInflater inflater;
@@ -75,15 +78,27 @@ public class MainActivity extends AppCompatActivity {
 
         btnSend = (Button) findViewById(R.id.btnSend);
         inputMsg = (EditText) findViewById(R.id.inputMsg);
-        listView = (ListView) findViewById(R.id.list_view);
+        listViewMessages = (ListView) findViewById(R.id.list_view);
 
         context = getApplicationContext();
         queue = Volley.newRequestQueue(context);
         inflater = getLayoutInflater();
         messageList = new ArrayList<>();
 
+        realm = Realm.getInstance(context);
+
+        RealmResults<Message> results = realm.where(Message.class).findAll();
+        if(results.size()>0)
+        {
+            realm.beginTransaction();
+            for (int i = 0; i < results.size(); i++) {
+                messageList.add(results.get(i));
+            }
+            realm.commitTransaction();
+        }
+
         mAdapter = new MessagesListAdapter(this, messageList);
-        listView.setAdapter(mAdapter);
+        listViewMessages.setAdapter(mAdapter);
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,13 +124,16 @@ public class MainActivity extends AppCompatActivity {
         }
         inputMsg.setText("");
 
-        Message message = new Message();
+        realm.beginTransaction();
+        Message message = realm.createObject(Message.class);
         message.setSuccess(1);
         message.setChatBotName(Config.name);
         message.setChatBotID(Integer.parseInt(Config.chatBotID));
         message.setMessage(msg);
         message.setEmotion(null);
         message.setSelf(true);
+        realm.commitTransaction();
+
         messageList.add(message);
         mAdapter.notifyDataSetChanged();
 
@@ -134,14 +152,15 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 if(response.getInt("success")==1)
                                 {
-                                    Message message = new Message();
+                                    realm.beginTransaction();
+                                    Message message = realm.createObject(Message.class);
                                     JSONObject m = response.getJSONObject("message");
                                     message.setChatBotName(m.optString("chatBotName", ""));
                                     message.setChatBotID(m.optInt("chatBotID"));
                                     message.setMessage(m.optString("message", ""));
                                     message.setEmotion(m.optString("emotions",null));
                                     message.setSelf(false);
-
+                                    realm.commitTransaction();
                                     appendMessage(message);
                                 }
                                 else
@@ -296,6 +315,12 @@ public class MainActivity extends AppCompatActivity {
         if (queue != null) {
             queue.cancelAll(TAG);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+            realm.close();
     }
 
     @Override

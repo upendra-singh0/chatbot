@@ -2,12 +2,14 @@ package com.example.upendra.myapplication.Model;
 
 import java.io.Serializable;
 
+import io.realm.RealmObject;
+
 /**
  * Created by Upendra on 4/2/2017.
  */
 
 
-public class Message implements Serializable {
+public class Message extends RealmObject {
 
     private Integer success;
     private String errorMessage;
@@ -15,7 +17,7 @@ public class Message implements Serializable {
     private String chatBotName;
     private Integer chatBotID;
     private String message;
-    private Object emotion;
+    private String emotion;
 
     private boolean isSelf;
 
@@ -59,11 +61,11 @@ public class Message implements Serializable {
         this.message = message;
     }
 
-    public Object getEmotion() {
+    public String getEmotion() {
         return emotion;
     }
 
-    public void setEmotion(Object emotion) {
+    public void setEmotion(String emotion) {
         this.emotion = emotion;
     }
 
