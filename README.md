@@ -9,3 +9,9 @@ chat bot like whatsapp
 
 Screenshot of GUI
 ![GUI Image](Screenshots/1.png)
+
+![GUI Image](Screenshots/2.png)
+
+![GUI Image](Screenshots/3.png)
+
+![GUI Image](Screenshots/4.png)
