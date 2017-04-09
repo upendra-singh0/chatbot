@@ -3,6 +3,7 @@ package com.example.upendra.myapplication.Activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -59,6 +60,9 @@ import static android.R.id.message;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String name="";
+    SharedPreferences prefs;
+
     private Button btnSend;
     private EditText inputMsg;
     private ListView listViewMessages;
@@ -84,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
         queue = Volley.newRequestQueue(context);
         inflater = getLayoutInflater();
         messageList = new ArrayList<>();
+
+        prefs = getSharedPreferences("userId", 0);
+        if(prefs.getInt("userId", 0) != 0){
+            name = prefs.getString("firstname","");
+        }
 
         realm = Realm.getInstance(context);
 
@@ -127,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         realm.beginTransaction();
         Message message = realm.createObject(Message.class);
         message.setSuccess(1);
-        message.setChatBotName(Config.name);
+        message.setChatBotName(name);
         message.setChatBotID(Integer.parseInt(Config.chatBotID));
         message.setMessage(msg);
         message.setEmotion(null);
@@ -136,14 +145,13 @@ public class MainActivity extends AppCompatActivity {
 
         messageList.add(message);
         mAdapter.notifyDataSetChanged();
-
         msg = msg.replace(" ","+");
         sendMessageToServer(msg);
     }
 
     private void sendMessageToServer(final String msg)
     {
-        String url =Config.URL+"?apiKey="+Config.apiKey+"&message="+msg+"&chatBotID="+Config.chatBotID+"&externalID="+Config.externalID;
+        String url = Config.URL+"?apiKey="+Config.apiKey+"&message="+msg+"&chatBotID="+Config.chatBotID+"&externalID="+Config.externalID;
         JsonObjectRequest jsonObjectRequest= new JsonObjectRequest(Request.Method.GET, url,null,
                 new Response.Listener<JSONObject>() {
                     @Override
