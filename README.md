@@ -15,3 +15,5 @@ Screenshot of GUI
 ![GUI Image](Screenshots/3.png)
 
 ![GUI Image](Screenshots/4.png)
+
+<img src="Screenshots/1.png" width="50">
