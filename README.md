@@ -8,12 +8,4 @@ chat bot like whatsapp
 5. Store and display past history messages both sent and received.
 
 Screenshot of GUI
-![GUI Image](Screenshots/1.png)
-
-![GUI Image](Screenshots/2.png)
-
-![GUI Image](Screenshots/3.png)
-
-![GUI Image](Screenshots/4.png)
-
-<img src="Screenshots/1.png" width="50">
+<img src="Screenshots/1.png" width="100"> <img src="Screenshots/2.png" width="200"> <img src="Screenshots/3.png" width="300"> <img src="Screenshots/4.png" width="500">
